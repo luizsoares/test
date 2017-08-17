@@ -14,10 +14,10 @@ We will then create dashboards for a better user experience while working with t
 
 ## Technical overview
 ### Preamble
-For this demonstration, we will use [vagrant](https://vagrantup.com). Vagrant is a tool that allows us to replicate virtual environments based off a single configuration file. The technical details of the configuration can be found in the [appendix](#Appendix)
+For this demonstration, we will use [vagrant](https://vagrantup.com). Vagrant is a tool that allows us to replicate virtual environments based off a single configuration file. The technical details of the configuration can be found in the [appendix](#appendix)
 ```
 $ vagrant init ubuntu/xenial64
-$ # customize Vagrantfile
+### customize Vagrantfile
 $ vagrant up
 ```
 We now have a brand new ubuntu instance to be used in the subsequent steps.
@@ -64,7 +64,7 @@ Now assume, for the purpose of this exercise, that our test.support.random metri
 3. it allows us to <b>set the time window per widget</b>.
 
 Let's see what that looks like:
-<screenshots (more than one)
+<screenshots (more than one)>
 
 Screenboards can also be shared publically. To see this screenboard live on datadog, click [here]().
 
@@ -73,6 +73,7 @@ We will now see how to configure Datadog to take actions when certain conditions
 
 ### Alerting on your data
 Operations teams leverage metric collection systems in many ways, and one of the most important features is the ability to automatically notify an operator when a certain metric exceeds a threshold. This enables operation teams to respond swiftly in case of issues, guaranteeing business continuity.
+
 In the last section, we defined test.support.random to be an overall indicator of system health. Let's create an alert and specify the appropriate conditions to notify the operations team their immediate attention is needed.
 This synthetic measurement a minimum value of 0 and a maximum of 1. For the purposes of this exercise, we assume that the higher the score, the more unhealthy the system is. We will configure the alert to trigger if this metric exceeds 0.90 at least once, during the last 5 minutes.
 <screenshots here>
@@ -92,6 +93,43 @@ Datadog will then notify the operators, once, on the scheduled downtime:
 In this section we briefly showcased one way to trigger actions (alerting) upon fulfilling some predefined conditions on certain metrics.
 
 ## Conclusion
-This concludes our brief introduction to Datadog. In this document we covered the basics, which should empower new users to get up to speed with the platform. This is by no means a comprehensive guide, however. We provide many [guides]() and [videos](https://docs.datadoghq.com/videos/) that cover basic elements like gathering data to advanced topics such as creating new integrations, doing autodiscovery with containers and single sign-on. For the technical details on the sample scenario discussed in the document, check the [Appendix](#Appendix) section.
+This concludes our brief introduction to Datadog. In this document we covered the basics, which should empower new users to get up to speed with the platform. This is by no means a comprehensive guide, however. We provide many [guides]() and [videos](https://docs.datadoghq.com/videos/) that cover basic elements like gathering data to advanced topics such as creating new integrations, doing autodiscovery with containers and single sign-on.
+
+For the technical details on the sample scenario discussed in the document, check the [Appendix](#appendix) section.
 
 ## Appendix
+### Level 0 - Setup an Ubuntu VM
+I used puppet to install and configure both Postgresql and the Datadog agent. First, I installed the appropriate puppet modules into the target folder:
+```
+$ puppet module install -i ./modules datadog-datadog_agent
+Notice: Preparing to install into .../modules ...
+Notice: Created target directory .../modules
+Notice: Downloading from https://forgeapi.puppet.com ...
+Notice: Installing -- do not interrupt ...
+/.../modules
+└─┬ datadog-datadog_agent (v1.11.0)
+  ├── lwf-remote_file (v1.1.3)
+  ├── puppetlabs-concat (v2.2.0)
+  ├── puppetlabs-ruby (v0.6.0)
+  └── puppetlabs-stdlib (v4.18.0)
+$ puppet module install -i ./modules puppetlabs-postgresql
+Notice: Preparing to install into /.../modules ...
+Notice: Downloading from https://forgeapi.puppet.com ...
+Notice: Installing -- do not interrupt ...
+/.../modules
+└─┬ puppetlabs-postgresql (v5.1.0)
+  ├── puppetlabs-apt (v4.1.0)
+  ├── puppetlabs-concat (v2.2.0)
+  └── puppetlabs-stdlib (v4.18.0)
+```
+
+I used `vagrant init` to get a sample Vagrantfile, and then [configured it](../vm/Vagrantfile) to bootstrap the machine by installing the puppet agent, and [running puppet with my manifest afterwards](../vm/environments/test/default.pp):
+
+With this in place, I used `vagrant up` to bring the machine up.
+
+### Level 1 - Collecting your data
+I signed up for DataDog using my email, and retrieved the API key for the agent.
+
+Bonus question: The agent is a program that runs in the background, polling for metrics at set intervals and uploading said metrics to Datadog. It also includes DogStatsD, a custom StatsD implementation that allows metric gathering via push, and metric aggregation prior to forwarding the metrics upstream.
+
+
