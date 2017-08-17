@@ -123,7 +123,7 @@ Notice: Installing -- do not interrupt ...
   └── puppetlabs-stdlib (v4.18.0)
 ```
 
-I used `vagrant init` to get a sample Vagrantfile, and then [configured it](../vm/Vagrantfile) to bootstrap the machine by installing the puppet agent, and [running puppet with my manifest afterwards](../vm/environments/test/default.pp):
+I used `vagrant init` to get a sample Vagrantfile, and then [configured it](vm/Vagrantfile) to bootstrap the machine by installing the puppet agent, and [running puppet with my manifest afterwards](vm/environments/test/default.pp):
 
 With this in place, I used `vagrant up` to bring the machine up.
 
