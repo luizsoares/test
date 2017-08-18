@@ -168,10 +168,92 @@ $ tree -d -L 2
 I used `vagrant init` to get a sample Vagrantfile, and then [configured it](vm/Vagrantfile) to bootstrap the machine by installing the puppet agent, and [running puppet with my manifest afterwards](vm/environments/test/manifests/default.pp):
 
 With this in place, I used `vagrant up` to bring the machine up.
+```
+❯ vagrant up
+Bringing machine 'default' up with 'virtualbox' provider...
+==> default: Importing base box 'ubuntu/xenial64'...
+==> default: Matching MAC address for NAT networking...
+==> default: Checking if box 'ubuntu/xenial64' is up to date...
+... a *lot* of output omitted for brevity ...
+==> default: Running provisioner: shell...
+    default: Running: inline script
+==> default: Selecting previously unselected package puppet-release.
+==> default: (Reading database ... 53902 files and directories currently installed.)
+==> default: Preparing to unpack /tmp/puppet.deb ...
+==> default: Unpacking puppet-release (1.0.0-1xenial) ...
+==> default: Setting up puppet-release (1.0.0-1xenial) ...
+==> default: Get:1 http://security.ubuntu.com/ubuntu xenial-security InRelease [102 kB]
+==> default: Ign:2 http://apt.puppetlabs.com xenial InRelease
+... 
+==> default: Get:31 http://archive.ubuntu.com/ubuntu xenial-backports/universe Sources [4,404 B]
+==> default: Fetched 12.0 MB in 3s (3,313 kB/s)
+==> default: Reading package lists...
+==> default: Reading package lists...
+==> default: Building dependency tree...
+==> default:
+==> default: Reading state information...
+==> default: The following NEW packages will be installed:
+==> default:   puppet-agent
+==> default: 0 upgraded, 1 newly installed, 0 to remove and 11 not upgraded.
+==> default: Need to get 15.1 MB of archives.
+==> default: After this operation, 86.8 MB of additional disk space will be used.
+==> default: Get:1 http://apt.puppetlabs.com xenial/puppet amd64 puppet-agent amd64 5.1.0-1xenial [15.1 MB]
+==> default: dpkg-preconfigure: unable to re-open stdin: No such file or directory
+==> default: Fetched 15.1 MB in 1s (10.6 MB/s)
+==> default: Selecting previously unselected package puppet-agent.
+==> default: Preparing to unpack .../puppet-agent_5.1.0-1xenial_amd64.deb ...
+==> default: Unpacking puppet-agent (5.1.0-1xenial) ...
+==> default: Processing triggers for libc-bin (2.23-0ubuntu9) ...
+==> default: Setting up puppet-agent (5.1.0-1xenial) ...
+==> default: Running provisioner: puppet...
+==> default: Running Puppet with environment test...
+==> default: Notice: Compiled catalog for db1.hitronhub.home in environment test in 0.34 seconds
+==> default: Notice: /Stage[main]/Datadog_agent::Ubuntu/Datadog_agent::Ubuntu::Install_key[C7A7DA52]/Exec[key C7A7DA52]/returns: executed successfully
+==> default: Notice: /Stage[main]/Datadog_agent::Ubuntu/Datadog_agent::Ubuntu::Install_key[382E94DE]/Exec[key 382E94DE]/returns: executed successfully
+==> default: Notice: /Stage[main]/Datadog_agent::Ubuntu/File[/etc/apt/sources.list.d/datadog.list]/ensure: defined content as '{md5}5bc86f192cd8c8b96356fbebd98d90b1'
+==> default: Notice: /Stage[main]/Datadog_agent::Ubuntu/Exec[datadog_apt-get_update]: Triggered 'refresh' from 1 event
+==> default: Notice: /Stage[main]/Datadog_agent::Ubuntu/Package[datadog-agent]/ensure: created
+==> default: Notice: /Stage[main]/Datadog_agent/File[/etc/dd-agent]/owner: owner changed 'dd-agent' to 'root'
+==> default: Notice: /Stage[main]/Datadog_agent/File[/etc/dd-agent]/group: group changed 'dd-agent' to 'root'
+==> default: Notice: /Stage[main]/Datadog_agent/File[/etc/dd-agent/datadog.conf]/ensure: defined content as '{md5}513b9d508f3a77a0bf738a027e512d05'
+==> default: Notice: /Stage[main]/Datadog_agent::Ubuntu/Service[datadog-agent]/ensure: ensure changed 'stopped' to 'running'
+==> default: Notice: Applied catalog in 15.47 seconds
+```
 
 ### Level 1 - Collecting your data
 I signed up for DataDog using my email, and retrieved the API key for the agent.
 
 Bonus question: The agent is a program that runs in the background, polling for metrics at set intervals and uploading said metrics to Datadog. It also includes DogStatsD, a custom StatsD implementation that allows metric gathering via push, and metric aggregation prior to forwarding the metrics upstream.
 
-I took the opportunity to provision the agent with tags from the start, in the previous step. The puppet module has a [comprehensive interface](https://github.com/DataDog/puppet-datadog-agent/blob/master/manifests/init.pp#L5) and can easily leverage the hiera auto-lookup facilities to configure the agent in one shot.
+I took the liberty to provision the agent with tags from the start, in the previous step. The puppet module has a [comprehensive interface](https://github.com/DataDog/puppet-datadog-agent/blob/master/manifests/init.pp#L5) and can easily leverage the hiera auto-lookup facilities to configure the agent in one shot.
+
+Then, I installed postgresql using [this manifest](vm/install_postgresql.pp):
+```
+$ vagrant ssh
+Welcome to Ubuntu 16.04.3 LTS (GNU/Linux 4.4.0-91-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+  Get cloud support with Ubuntu Advantage Cloud Guest:
+    http://www.ubuntu.com/business/services/cloud
+
+13 packages can be updated.
+10 updates are security updates.
+
+
+ubuntu@db1:~$ cd /vagrant
+ubuntu@db1:/vagrant$ sudo /opt/puppetlabs/bin/puppet apply --modulepath '/tmp/vagrant-puppet/modules-c3357bd14dd107edea878eb05feaf422:/etc/puppet/modules' --hiera_config=/tmp/vagrant-puppet/hiera.yaml --detailed-exitcodes --environmentpath /tmp/vagrant-puppet/environments/ --environment test ./install_postgresql.pp
+Notice: Compiled catalog for db1.hitronhub.home in environment test in 0.86 seconds
+Notice: /Stage[main]/Postgresql::Server::Install/Package[postgresql-server]/ensure: created
+Notice: /Stage[main]/Postgresql::Server::Config/Concat[/etc/postgresql/9.5/main/pg_hba.conf]/File[/etc/postgresql/9.5/main/pg_hba.conf]/content: content changed '{md5}cbf62fe357451a5b84acf6e43e82329f' to '{md5}85cf7197535eff9999ba5de8665bb53e'
+Notice: /Stage[main]/Postgresql::Server::Config/Concat[/etc/postgresql/9.5/main/pg_ident.conf]/File[/etc/postgresql/9.5/main/pg_ident.conf]/content: content changed '{md5}f11c8332d3f444148c0b8ee83ec5fc6d' to '{md5}9300ac105fe777787ac9e793b8df8d25'
+Notice: /Stage[main]/Postgresql::Server::Reload/Exec[postgresql_reload]: Triggered 'refresh' from 1 event
+Notice: /Stage[main]/Main/Postgresql::Server::Role[datadog]/Postgresql_psql[CREATE ROLE datadog ENCRYPTED PASSWORD ****]/command: command changed 'notrun' to 'CREATE ROLE "datadog" ENCRYPTED PASSWORD \'$NEWPGPASSWD\' LOGIN NOCREATEROLE NOCREATEDB NOSUPERUSER  CONNECTION LIMIT -1'
+Notice: /Stage[main]/Datadog_agent::Integrations::Postgres/File[/etc/dd-agent/conf.d/postgres.yaml]/ensure: defined content as '{md5}0797259967ffb29c27e7a57959d824b0'
+Notice: /Stage[main]/Datadog_agent::Ubuntu/Service[datadog-agent]: Triggered 'refresh' from 1 event
+Notice: Applied catalog in 12.12 seconds
+```
+As we can see, this installed postgresql, started the service, created a user for the datadog agent to run the necessary queries against postgresql and reconfigured the datadog agent to enable the postgresql integration.
+
