@@ -32,13 +32,13 @@ Take note of the API key. This secret key is what authenticates and authorizes y
 In order to gather data from a host, we need a program (therefore called an Agent) that runs in the background and periodically records measurements we need. The Agent is also responsible for uploading the measurements to Datadog.
 Since we already foresee the need to replicate the installation of the Datadog agent across multiple hosts in the future, we will leverage a configuration management tool (puppet) in order to create an easily repeatable procedure.
 After running puppet and waiting for a few minutes, we can see our host reporting on datadog:
-<screenshots here>
+(screenshots here)
 
 We will now install Postgresql and enable the corresponding Datadog integration, in order to get Postgresql specific metrics into Datadog:
-<conf changes here>
+(conf changes here)
 
 At last, we will create a custom check to report on an arbitrary metric. For this example, we will simply generate a random number between zero and one and report that value:
-<conf changes here>
+(conf changes here)
 
 To recap: in this section we covered how to get started with Datadog, leveraged a turn-key integration to report on our database, and configured the collection of a custom metric.
 In this next section, we will see how to create functional dashboards to visualize this data.
@@ -46,12 +46,12 @@ In this next section, we will see how to create functional dashboards to visuali
 ### Visualizing your data
 Now that db1 is gathering data and shipping it to Datadog, it is time to create some dashboards that allow us to use the data in a meaningful way.
 Let's start by going to <some path in datadog>
-<screenshot here>
+(screenshot here)
 
 Now we have a choice between a Timeboard and a Screenboard. There are substantial differences between the two, let's explore the Timeboard first.
-<timeboard editor screenshot>
+(timeboard editor screenshot)
 As we can see, there are many ways by which we can express a measurement, from single numbers to graphs and gauges. Let's add some measurements:
-<timeboard editor screenshot>
+(timeboard editor screenshot)
 We added some system metrics, like CPU/memory/disk usage, and also some database metrics, like connection pool usage and rate of inserts. Suppose an operator has to figure out why this database server is slow while performing queries, he/she could take one look at the Timeboard and figure out:
 1. whether the slowness is caused by some system limits being hit, and if so:
 2. whether it is high CPU usage, high memory usage, or disk I/O exceeding the provisioned IOPS
@@ -64,7 +64,7 @@ Now assume, for the purpose of this exercise, that our test.support.random metri
 3. it allows us to <b>set the time window per widget</b>.
 
 Let's see what that looks like:
-<screenshots (more than one)>
+(screenshots (more than one))
 
 Screenboards can also be shared publically. To see this screenboard live on datadog, click [here]().
 
@@ -76,19 +76,19 @@ Operations teams leverage metric collection systems in many ways, and one of the
 
 In the last section, we defined test.support.random to be an overall indicator of system health. Let's create an alert and specify the appropriate conditions to notify the operations team their immediate attention is needed.
 This synthetic measurement a minimum value of 0 and a maximum of 1. For the purposes of this exercise, we assume that the higher the score, the more unhealthy the system is. We will configure the alert to trigger if this metric exceeds 0.90 at least once, during the last 5 minutes.
-<screenshots here>
+(screenshots here)
 
 Datadog also allows us to customize the email message:
-<editor screenshot>
+(editor screenshot)
 
 All we have to do is wait a little, and voila:
-<email screenshot>
+(email screenshot)
 
 This is just a test system, and considering the way we set up test.support.random, there's a 10% chance the alert will be triggered on each check (which happens approximately every 20 seconds). We probably don't want to notify our operators after business hours then:
-<screenshot scheduled downtime>
+(screenshot scheduled downtime)
 
 Datadog will then notify the operators, once, on the scheduled downtime:
-<email screenshot here>
+(email screenshot here)
 
 In this section we briefly showcased one way to trigger actions (alerting) upon fulfilling some predefined conditions on certain metrics.
 
@@ -99,7 +99,7 @@ For the technical details on the sample scenario discussed in the document, chec
 
 ## Appendix
 ### Level 0 - Setup an Ubuntu VM
-I used puppet to install and configure both Postgresql and the Datadog agent. First, I installed the appropriate puppet modules into the target folder:
+I used puppet to install and configure both Postgresql and the Datadog agent. First, I installed the appropriate puppet modules into the target folder (on the host):
 ```
 $ puppet module install -i ./modules datadog-datadog_agent
 Notice: Preparing to install into .../modules ...
@@ -123,7 +123,25 @@ Notice: Installing -- do not interrupt ...
   └── puppetlabs-stdlib (v4.18.0)
 ```
 
-I used `vagrant init` to get a sample Vagrantfile, and then [configured it](vm/Vagrantfile) to bootstrap the machine by installing the puppet agent, and [running puppet with my manifest afterwards](vm/environments/test/default.pp):
+This is what the directory structure looks like afterwards (including the environments and hieradata directories):
+```
+$ tree -d -L 2
+.
+├── environments
+│   └── test
+├── hieradata
+│   └── nodes
+└── modules
+    ├── apt
+    ├── concat
+    ├── datadog_agent
+    ├── postgresql
+    ├── remote_file
+    ├── ruby
+    └── stdlib
+```
+
+I used `vagrant init` to get a sample Vagrantfile, and then [configured it](vm/Vagrantfile) to bootstrap the machine by installing the puppet agent, and [running puppet with my manifest afterwards](vm/environments/test/manifests/default.pp):
 
 With this in place, I used `vagrant up` to bring the machine up.
 
@@ -132,4 +150,4 @@ I signed up for DataDog using my email, and retrieved the API key for the agent.
 
 Bonus question: The agent is a program that runs in the background, polling for metrics at set intervals and uploading said metrics to Datadog. It also includes DogStatsD, a custom StatsD implementation that allows metric gathering via push, and metric aggregation prior to forwarding the metrics upstream.
 
-
+I took the opportunity to provision the agent with tags from the start, in the previous step. The puppet module has a [comprehensive interface](https://github.com/DataDog/puppet-datadog-agent/blob/master/manifests/init.pp#L5) and can easily leverage the hiera auto-lookup facilities to configure the agent in one shot.
