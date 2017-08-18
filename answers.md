@@ -255,5 +255,11 @@ Notice: /Stage[main]/Datadog_agent::Integrations::Postgres/File[/etc/dd-agent/co
 Notice: /Stage[main]/Datadog_agent::Ubuntu/Service[datadog-agent]: Triggered 'refresh' from 1 event
 Notice: Applied catalog in 12.12 seconds
 ```
-As we can see, this installed postgresql, started the service, created a user for the datadog agent to run the necessary queries against postgresql and reconfigured the datadog agent to enable the postgresql integration.
+This puppet manifest:
+1. installs postgresql
+2. runs initdb, creating an initial cluster
+3. starts the service
+4. creates a regular user for the datadog agent
+5. reconfigures the datadog agent to enable the postgresql integration
+6. restarts the agent for the new configuration to take effect
 
