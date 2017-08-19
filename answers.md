@@ -122,8 +122,8 @@ This concludes our brief introduction to Datadog. In this document we covered th
 For the technical details on the sample scenario discussed in the document, check the [Appendix](#appendix) section.
 
 ## Appendix
-### Level 0 - Setup an Ubuntu VM
-I used puppet to install and configure both Postgresql and the Datadog agent. First, I installed the appropriate puppet modules into the target folder (on the host):
+### Setup an Ubuntu VM
+Puppet was used to install and configure both Postgresql and the Datadog agent. First, the appropriate puppet modules are installed into the target folder (on the host):
 ```
 $ puppet module install -i ./modules datadog-datadog_agent
 Notice: Preparing to install into .../modules ...
@@ -165,9 +165,9 @@ $ tree -d -L 2
     └── stdlib
 ```
 
-I used `vagrant init` to get a sample Vagrantfile, and then [configured it](vm/Vagrantfile) to bootstrap the machine by installing the puppet agent, and [running puppet with my manifest afterwards](vm/environments/test/manifests/default.pp):
+`vagrant init` is used to generate a sample Vagrantfile, and then [it is configured](vm/Vagrantfile) to bootstrap the machine by installing the puppet agent, and [running puppet with this manifest afterwards](vm/environments/test/manifests/default.pp):
 
-With this in place, I used `vagrant up` to bring the machine up.
+With this in place, `vagrant up` brings the machine up.
 ```
 ❯ vagrant up
 Bringing machine 'default' up with 'virtualbox' provider...
@@ -220,30 +220,23 @@ Bringing machine 'default' up with 'virtualbox' provider...
 ==> default: Notice: Applied catalog in 15.47 seconds
 ```
 
-### Level 1 - Collecting your data
-I signed up for DataDog using my email, and retrieved the API key for the agent.
-
-Bonus question: The agent is a program that runs in the background, polling for metrics at set intervals and uploading said metrics to Datadog. It also includes DogStatsD, a custom StatsD implementation that allows metric gathering via push, and metric aggregation prior to forwarding the metrics upstream.
-
-I took the liberty to provision the agent with tags from the start, in the previous step. The puppet module has a [comprehensive interface](https://github.com/DataDog/puppet-datadog-agent/blob/master/manifests/init.pp#L5) and can easily leverage the hiera auto-lookup facilities to configure the agent in one shot.
-
-Then, I installed postgresql using [this manifest](vm/install_postgresql.pp):
+For the scenario described in this document, we also created a synthetic metric called `test.support.random` that simply reports a random number between 0 and 1 every interval check. [This is the puppet manifest](vm/install_random_check.pp) that installs the check and reconfigures the agent to use it:
 ```
-$ vagrant ssh
-Welcome to Ubuntu 16.04.3 LTS (GNU/Linux 4.4.0-91-generic x86_64)
+ubuntu@db1:/vagrant$ sudo /opt/puppetlabs/bin/puppet apply --modulepath '/tmp/vagrant-puppet/modules-c3357bd14dd107edea878eb05feaf422:/etc/puppet/modules' --hiera_config=/tmp/vagrant-puppet/hiera.yaml --detailed-exitcodes --environmentpath /tmp/vagrant-puppet/environments/ --environment test ./install_random_check.pp
+Notice: Compiled catalog for db1.hitronhub.home in environment test in 0.02 seconds
+Notice: /Stage[main]/Main/File[/etc/dd-agent/checks.d/random_check.py]/content: content changed '{md5}f2b353656321ce5d0cdcd1fa688bb04e' to '{md5}3d6723ba582f507d6c1c8e3211dcc0a8'
+Notice: /Stage[main]/Main/File[/etc/dd-agent/conf.d/random_check.yaml]/content: content changed '{md5}ba3dd257d1afc95d1cb5221acaca70cb' to '{md5}8e681717a3d07dcb0394a2a38ac3d139'
+Notice: /Stage[main]/Main/Service[datadog-agent]: Triggered 'refresh' from 2 events
+Notice: Applied catalog in 0.51 seconds
+```
 
- * Documentation:  https://help.ubuntu.com
- * Management:     https://landscape.canonical.com
- * Support:        https://ubuntu.com/advantage
+### Collecting your data
+The agent is a program that runs in the background, polling for metrics at set intervals and uploading said metrics to Datadog. It also includes DogStatsD, a custom StatsD implementation that allows metric gathering via push, and metric aggregation prior to forwarding the metrics upstream.
 
-  Get cloud support with Ubuntu Advantage Cloud Guest:
-    http://www.ubuntu.com/business/services/cloud
+For this example, the agent has been provisioned with the correct tags from the start (in the previous step). The puppet module has a [comprehensive interface](https://github.com/DataDog/puppet-datadog-agent/blob/master/manifests/init.pp#L5) and can easily leverage the hiera auto-lookup facilities to configure the agent in one shot. This mirrors the behaviour of a real-world automated deployment.
 
-13 packages can be updated.
-10 updates are security updates.
-
-
-ubuntu@db1:~$ cd /vagrant
+Postgresql was then installed using [this manifest](vm/install_postgresql.pp):
+```
 ubuntu@db1:/vagrant$ sudo /opt/puppetlabs/bin/puppet apply --modulepath '/tmp/vagrant-puppet/modules-c3357bd14dd107edea878eb05feaf422:/etc/puppet/modules' --hiera_config=/tmp/vagrant-puppet/hiera.yaml --detailed-exitcodes --environmentpath /tmp/vagrant-puppet/environments/ --environment test ./install_postgresql.pp
 Notice: Compiled catalog for db1.hitronhub.home in environment test in 0.86 seconds
 Notice: /Stage[main]/Postgresql::Server::Install/Package[postgresql-server]/ensure: created
@@ -263,3 +256,7 @@ This puppet manifest:
 5. reconfigures the datadog agent to enable the postgresql integration
 6. restarts the agent for the new configuration to take effect
 
+### Caveats
+To replicate these examples, first one must edit and rename the files under `hieradata`. Remove the `.template` extension and inject your own credentials.
+
+Rebooting the virtual machine will trigger a cleanup in /tmp. The Vagrant Puppet provisioner works by mounting VirtualBox shared folders for the environments and modules directories, but hiera.yaml is copied to /tmp in the guest, which means that trying to run the later manifests (install\_postgresql.pp and install\_random_check.pp) will fail since there will be no hiera configuration in place. An easy fix is to change the puppet command line to read `--hiera_config=/vagrant/hiera.yaml` instead.
