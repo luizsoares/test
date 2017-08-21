@@ -36,15 +36,28 @@ In order to gather data from a host, we need a program (therefore called an Agen
 
 Since we already foresee the need to replicate the installation of the Datadog agent across multiple hosts in the future, we will leverage a configuration management tool (puppet) in order to create an easily repeatable procedure.
 
-After running puppet and waiting for a few minutes, we can see our host reporting on datadog:
+After running puppet and waiting for a few minutes, we can see our host reporting on datadog, by going to Infrastructure &gt; Host map:
 
 (screenshots here)
 
 We will now install Postgresql and enable the corresponding Datadog integration, in order to get Postgresql specific metrics into Datadog:
 
+```
+ubuntu@db1:/vagrant$ sudo /opt/puppetlabs/bin/puppet apply --modulepath '/tmp/vagrant-puppet/modules-c3357bd14dd107edea878eb05feaf422:/etc/puppet/modules' --hiera_config=/tmp/vagrant-puppet/hiera.yaml --detailed-exitcodes --environmentpath /tmp/vagrant-puppet/environments/ --environment test ./install_postgresql.pp
+Notice: Compiled catalog for db1.hitronhub.home in environment test in 0.86 seconds
+Notice: /Stage[main]/Postgresql::Server::Install/Package[postgresql-server]/ensure: created
+Notice: /Stage[main]/Postgresql::Server::Config/Concat[/etc/postgresql/9.5/main/pg_hba.conf]/File[/etc/postgresql/9.5/main/pg_hba.conf]/content: content changed '{md5}cbf62fe357451a5b84acf6e43e82329f' to '{md5}85cf7197535eff9999ba5de8665bb53e'
+Notice: /Stage[main]/Postgresql::Server::Config/Concat[/etc/postgresql/9.5/main/pg_ident.conf]/File[/etc/postgresql/9.5/main/pg_ident.conf]/content: content changed '{md5}f11c8332d3f444148c0b8ee83ec5fc6d' to '{md5}9300ac105fe777787ac9e793b8df8d25'
+Notice: /Stage[main]/Postgresql::Server::Reload/Exec[postgresql_reload]: Triggered 'refresh' from 1 event
+Notice: /Stage[main]/Main/Postgresql::Server::Role[datadog]/Postgresql_psql[CREATE ROLE datadog ENCRYPTED PASSWORD ****]/command: command changed 'notrun' to 'CREATE ROLE "datadog" ENCRYPTED PASSWORD \'$NEWPGPASSWD\' LOGIN NOCREATEROLE NOCREATEDB NOSUPERUSER  CONNECTION LIMIT -1'
+Notice: /Stage[main]/Datadog_agent::Integrations::Postgres/File[/etc/dd-agent/conf.d/postgres.yaml]/ensure: defined content as '{md5}0797259967ffb29c27e7a57959d824b0'
+Notice: /Stage[main]/Datadog_agent::Ubuntu/Service[datadog-agent]: Triggered 'refresh' from 1 event
+Notice: Applied catalog in 12.12 seconds
+```
+
 (conf changes here)
 
-At last, we will create a custom check to report on an arbitrary metric. For this example, we will simply generate a random number between zero and one and report that value:
+At last, we will create a custom check to report on an arbitrary metric. For this example, we will simply generate a random number between zero and one and report that value. The code for this check can be found [here](vm/files/random_check.py). We will also reconfigure the datadog agent to make use of this new check by using this [puppet manifest](vm/install_random_check.pp):
 
 (conf changes here)
 
@@ -55,7 +68,7 @@ In this next section, we will see how to create functional dashboards to visuali
 ### Visualizing your data
 Now that db1 is gathering data and shipping it to Datadog, it is time to create some dashboards that allow us to use the data in a meaningful way.
 
-Let's start by going to <some path in datadog>
+Let's start by going to Dashboards > New dashboard:
 
 (screenshot here)
 
@@ -84,7 +97,7 @@ Let's see what that looks like:
 
 (screenshots (more than one))
 
-Screenboards can also be shared publically. To see this screenboard live on datadog, click [here]().
+Screenboards can also be shared publically. To see this screenboard live on datadog, click [here](https://p.datadoghq.com/sb/c83082073-7915f64bea).
 
 In this section we covered how to visualize your data and some of the different ways to do so.
 We will now see how to configure Datadog to take actions when certain conditions are met.
@@ -106,7 +119,7 @@ All we have to do is wait a little, and voila:
 
 (email screenshot)
 
-This is just a test system, and considering the way we set up test.support.random, there's a 10% chance the alert will be triggered on each check (which happens approximately every 20 seconds). We probably don't want to notify our operators after business hours then:
+This is just a test system, and considering the way we set up test.support.random, there's a 10% chance the alert will be triggered on each check (which happens approximately every 20 seconds). We probably don't want to notify our operators after business hours, then we use a scheduled downtime to disable the alerts until 9am the next day:
 
 (screenshot scheduled downtime)
 
