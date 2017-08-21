@@ -27,7 +27,7 @@ Datadog provides a 15-day trial in which you can explore the platform at will, n
 
 Let's start by signing up for the service:
 
-< screenshots here >
+<img src="images/signup.png" />
 
 Take note of the API key. This secret key is what authenticates and authorizes your servers when using Datadog's APIs.
 
