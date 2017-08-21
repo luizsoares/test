@@ -102,7 +102,11 @@ Now assume, for the purpose of this exercise, that our test.support.random metri
 
 Let's see what that looks like:
 
-(screenshots (more than one))
+<img src="images/screenboard_editor.png" />
+
+Pressing F gives us a "full-screen" mode where everything is scaled to occupy the whole window:
+
+<img src="images/screenboard_full_screen_mode.png" />
 
 Screenboards can also be shared publically. To see this screenboard live on datadog, click [here](https://p.datadoghq.com/sb/c83082073-7915f64bea).
 
@@ -112,15 +116,13 @@ We will now see how to configure Datadog to take actions when certain conditions
 ### Alerting on your data
 Operations teams leverage metric collection systems in many ways, and one of the most important features is the ability to automatically notify an operator when a certain metric exceeds a threshold. This enables operation teams to respond swiftly in case of issues, guaranteeing business continuity.
 
-In the last section, we defined test.support.random to be an overall indicator of system health. Let's create an alert and specify the appropriate conditions to notify the operations team their immediate attention is needed.
+In the last section, we defined test.support.random to be an overall indicator of system health. This synthetic measurement a minimum value of 0 and a maximum of 1. For the purposes of this exercise, we assume that the higher the score, the more unhealthy the system is. We will configure the alert to trigger if this metric exceeds 0.90 at least once, during the last 5 minutes:
 
-This synthetic measurement a minimum value of 0 and a maximum of 1. For the purposes of this exercise, we assume that the higher the score, the more unhealthy the system is. We will configure the alert to trigger if this metric exceeds 0.90 at least once, during the last 5 minutes.
-
-(screenshots here)
-
-Datadog also allows us to customize the email message:
-
-(editor screenshot)
+<img src="images/create_new_monitor.png" />
+<img src="images/create_new_monitor_1.png" />
+<img src="images/create_new_monitor_2.png" />
+<img src="images/create_new_monitor_3.png" />
+<img src="images/create_new_monitor_4.png" />
 
 All we have to do is wait a little, and voila:
 
