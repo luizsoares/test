@@ -81,6 +81,12 @@ As we can see, there are many ways by which we can express a measurement, from s
 
 <img src="images/timeboard_editor.png" />
 
+Adding a chart:
+<img src="images/timeboard_editor_add_chart.png" />
+
+The end result:
+<img src="images/timeboard_end_state.png" />
+
 We added some system metrics, like CPU/memory/disk usage, and also some database metrics, like connection pool usage and rate of inserts. Suppose an operator has to figure out why this database server is slow while performing queries, he/she could take one look at the Timeboard and figure out:
 
 1. whether the slowness is caused by some system limits being hit, and if so:
