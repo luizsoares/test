@@ -140,7 +140,7 @@ Datadog will then notify the operators, once, on the scheduled downtime:
 In this section we briefly showcased one way to trigger actions (alerting) upon fulfilling some predefined conditions on certain metrics.
 
 ## Conclusion
-This concludes our brief introduction to Datadog. In this document we covered the basics, which should empower new users to get up to speed with the platform. This is by no means a comprehensive guide, however. We provide many [guides]() and [videos](https://docs.datadoghq.com/videos/) that cover basic elements like gathering data to advanced topics such as creating new integrations, doing autodiscovery with containers and single sign-on.
+This concludes our brief introduction to Datadog. In this document we covered the basics, which should empower new users to get up to speed with the platform. This is by no means a comprehensive guide, however. We provide many [guides](https://docs.datadoghq.com/) and [videos](https://docs.datadoghq.com/videos/) that cover basic elements like gathering data to advanced topics such as creating new integrations, doing autodiscovery with containers and single sign-on.
 
 For the technical details on the sample scenario discussed in the document, check the [Appendix](#appendix) section.
 
