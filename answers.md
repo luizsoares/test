@@ -28,6 +28,7 @@ Datadog provides a 15-day trial in which you can explore the platform at will, n
 Let's start by signing up for the service:
 
 <img src="images/signup.png" />
+<img src="images/first_agent_installation.png" />
 
 Take note of the API key. This secret key is what authenticates and authorizes your servers when using Datadog's APIs.
 
@@ -38,7 +39,7 @@ Since we already foresee the need to replicate the installation of the Datadog a
 
 After running puppet and waiting for a few minutes, we can see our host reporting on datadog, by going to Infrastructure &gt; Host map:
 
-(screenshots here)
+<img src="images/first_metrics.png" />
 
 We will now install Postgresql and enable the corresponding Datadog integration, in order to get Postgresql specific metrics into Datadog:
 
@@ -55,7 +56,7 @@ Notice: /Stage[main]/Datadog_agent::Ubuntu/Service[datadog-agent]: Triggered 're
 Notice: Applied catalog in 12.12 seconds
 ```
 
-(conf changes here)
+<img src="images/added_postgres_metrics.png" />
 
 At last, we will create a custom check to report on an arbitrary metric. For this example, we will simply generate a random number between zero and one and report that value. The code for this check can be found [here](vm/files/random_check.py). We will also reconfigure the datadog agent to make use of this new check by using this [puppet manifest](vm/install_random_check.pp):
 
