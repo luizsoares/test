@@ -126,15 +126,16 @@ In the last section, we defined test.support.random to be an overall indicator o
 
 All we have to do is wait a little, and voila:
 
-(email screenshot)
+<img src="images/alert_email.png" />
 
 This is just a test system, and considering the way we set up test.support.random, there's a 10% chance the alert will be triggered on each check (which happens approximately every 20 seconds). We probably don't want to notify our operators after business hours, then we use a scheduled downtime to disable the alerts until 9am the next day:
 
-(screenshot scheduled downtime)
+<img src="images/scheduled_downtime_1.png" />
+<img src="images/scheduled_downtime_2.png" />
 
 Datadog will then notify the operators, once, on the scheduled downtime:
 
-(email screenshot here)
+<img src="images/scheduled_downtime_email.png" />
 
 In this section we briefly showcased one way to trigger actions (alerting) upon fulfilling some predefined conditions on certain metrics.
 
