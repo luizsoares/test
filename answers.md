@@ -60,7 +60,7 @@ Notice: Applied catalog in 12.12 seconds
 
 At last, we will create a custom check to report on an arbitrary metric. For this example, we will simply generate a random number between zero and one and report that value. The code for this check can be found [here](vm/files/random_check.py). We will also reconfigure the datadog agent to make use of this new check by using this [puppet manifest](vm/install_random_check.pp):
 
-(conf changes here)
+<img src="images/added_random_metrics.png" />
 
 To recap: in this section we covered how to get started with Datadog, leveraged a turn-key integration to report on our database, and configured the collection of a custom metric.
 
@@ -71,15 +71,15 @@ Now that db1 is gathering data and shipping it to Datadog, it is time to create 
 
 Let's start by going to Dashboards > New dashboard:
 
-(screenshot here)
+<img src="images/new_dashboard.png" />
 
 Now we have a choice between a Timeboard and a Screenboard. There are substantial differences between the two, let's explore the Timeboard first.
 
-(timeboard editor screenshot)
+<img src="images/new_timeboard.png" />
 
 As we can see, there are many ways by which we can express a measurement, from single numbers to graphs and gauges. Let's add some measurements:
 
-(timeboard editor screenshot)
+<img src="images/timeboard_editor.png" />
 
 We added some system metrics, like CPU/memory/disk usage, and also some database metrics, like connection pool usage and rate of inserts. Suppose an operator has to figure out why this database server is slow while performing queries, he/she could take one look at the Timeboard and figure out:
 
